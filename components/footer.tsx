@@ -12,13 +12,13 @@ export function Footer() {
         {/* 左側品牌 */}
         <div className="text-center md:text-left">
           <h3 className="text-xl font-black tracking-tight text-foreground">
-            社會住宅包租代管
+            台灣生命資訊網
           </h3>
 
           <p className="mt-3 max-w-md text-sm leading-7 text-muted-foreground">
-            提供社會住宅包租代管、 房屋出租管理、
-            租客媒合與租屋補助相關諮詢服務，
-            協助房東安心出租、穩定管理。
+            提供後事流程、生命禮儀、塔位資訊、
+            殯葬服務、喪禮安排與相關資訊整理，
+            協助家屬在需要時更快速了解方向。
           </p>
         </div>
 
@@ -32,6 +32,10 @@ export function Footer() {
             最新文章
           </a>
 
+          <a href="/#services" className="transition-colors hover:text-primary">
+            服務資訊
+          </a>
+
           <a href="/#contact" className="transition-colors hover:text-primary">
             聯絡諮詢
           </a>
@@ -40,7 +44,7 @@ export function Footer() {
         {/* 右側聯絡 */}
         <div className="text-center md:text-right">
           <p className="text-sm font-semibold text-foreground">
-            LINE 免費諮詢
+            LINE 線上詢問
           </p>
 
           <LineConsultButton className="mt-2 inline-block text-sm font-medium text-primary transition-opacity hover:opacity-70">
@@ -48,7 +52,7 @@ export function Footer() {
           </LineConsultButton>
 
           <p className="mt-3 text-xs leading-6 text-muted-foreground">
-            房東出租｜社會住宅｜包租代管
+            後事流程｜生命禮儀｜塔位資訊｜家屬諮詢
           </p>
         </div>
       </div>
@@ -56,7 +60,7 @@ export function Footer() {
       {/* 底部 */}
       <div className="relative mx-auto mt-10 max-w-6xl border-t border-border/60 pt-6 text-center">
         <p className="text-xs tracking-wide text-muted-foreground">
-          © 2026 凌群不動產. All rights reserved.
+          © 2026 台灣生命資訊網. All rights reserved.
         </p>
       </div>
     </footer>

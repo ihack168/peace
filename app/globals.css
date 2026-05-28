@@ -7,7 +7,7 @@
   --font-sans: 'Noto Sans TC', 'Geist', sans-serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
 
-  --color-background: #f7f5ef;
+  --color-background: #f5f7f8;
   --color-foreground: #1f2933;
 
   --color-card: #ffffff;
@@ -16,44 +16,44 @@
   --color-popover: #ffffff;
   --color-popover-foreground: #1f2933;
 
-  --color-primary: #1f4e79;
+  --color-primary: #174b73;
   --color-primary-foreground: #ffffff;
 
-  --color-secondary: #e8f1ed;
-  --color-secondary-foreground: #29463d;
+  --color-secondary: #eef4f2;
+  --color-secondary-foreground: #24443b;
 
-  --color-muted: #eef1f3;
-  --color-muted-foreground: #6b7280;
+  --color-muted: #eef1f4;
+  --color-muted-foreground: #667085;
 
-  --color-accent: #c59b4a;
+  --color-accent: #2f7d5c;
   --color-accent-foreground: #ffffff;
 
-  --color-destructive: #dc2626;
+  --color-destructive: #b42318;
   --color-destructive-foreground: #ffffff;
 
-  --color-border: #d8ddd8;
-  --color-input: #d8ddd8;
-  --color-ring: #1f4e79;
+  --color-border: #d7dde3;
+  --color-input: #d7dde3;
+  --color-ring: #174b73;
 
-  --color-chart-1: #1f4e79;
+  --color-chart-1: #174b73;
   --color-chart-2: #2f7d5c;
-  --color-chart-3: #c59b4a;
+  --color-chart-3: #6b7280;
   --color-chart-4: #7aa6c2;
   --color-chart-5: #8b7355;
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.875rem;
-  --radius-xl: 1.25rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
 
   --color-sidebar: #ffffff;
   --color-sidebar-foreground: #1f2933;
-  --color-sidebar-primary: #1f4e79;
+  --color-sidebar-primary: #174b73;
   --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: #e8f1ed;
-  --color-sidebar-accent-foreground: #29463d;
-  --color-sidebar-border: #d8ddd8;
-  --color-sidebar-ring: #1f4e79;
+  --color-sidebar-accent: #eef4f2;
+  --color-sidebar-accent-foreground: #24443b;
+  --color-sidebar-border: #d7dde3;
+  --color-sidebar-ring: #174b73;
 }
 
 @layer base {
@@ -67,10 +67,11 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    letter-spacing: 0.01em;
   }
 
   ::selection {
-    background: #cfe3dc;
+    background: #d9e8e3;
     color: #1f2933;
   }
 }
