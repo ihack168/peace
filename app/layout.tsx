@@ -133,7 +133,7 @@ export default function RootLayout({
           src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"
           strategy="afterInteractive"
         />
-
+<script defer src="https://cloud.umami.is/script.js" data-website-id="d22b84c3-1e8f-41f2-bea5-3c9a8c099325"></script>
         <Script id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
