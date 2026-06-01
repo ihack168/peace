@@ -4,7 +4,7 @@ import { client } from "@/lib/sanity"
 export const revalidate = 3600
 export const dynamic = "force-dynamic"
 
-const siteUrl = "https://home.line88.tw"
+const siteUrl = "https://peace.line88.tw"
 
 type SanityPost = {
   slug: string

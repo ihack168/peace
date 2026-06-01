@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: 'https://home.line88.tw/sitemap.xml',
+    sitemap: 'https://peace.line88.tw/sitemap.xml',
   }
 }
