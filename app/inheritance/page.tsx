@@ -236,7 +236,7 @@ export default function InheritancePage() {
         <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
           <div className="overflow-hidden rounded-[2rem] border border-border bg-white shadow-sm">
             <Image
-              src="/images/inheritance-property.webp"
+              src="/images/inheritance-documents.webp"
               alt="不動產繼承與房屋繼承文件"
               width={1200}
               height={900}
