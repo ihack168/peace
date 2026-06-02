@@ -19,6 +19,16 @@ interface Post {
   htmlContent?: string
 }
 
+function optimizeSanityImageUrl(url?: string) {
+  if (!url) return ""
+
+  if (!url.includes("cdn.sanity.io/images")) return url
+
+  if (url.includes("auto=format")) return url
+
+  return `${url}${url.includes("?") ? "&" : "?"}auto=format`
+}
+
 function BlogPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -45,10 +55,7 @@ function BlogPageContent() {
         const start = (page - 1) * postsPerPage
         const end = start + postsPerPage
 
-        const tagFilter =
-          selectedTag !== "全部"
-            ? `&& $selectedTag in tags`
-            : ""
+        const tagFilter = selectedTag !== "全部" ? `&& $selectedTag in tags` : ""
 
         const count = await client.fetch(
           `count(*[_type == "post" ${tagFilter}])`,
@@ -74,7 +81,7 @@ function BlogPageContent() {
           { start, end, selectedTag },
           { cache: "no-store" }
         )
-        console.log("Sanity posts result:", result)
+
         const processedPosts = result.map((post: any) => {
           let extractedImg = ""
           let extractedDesc = post.description || ""
@@ -83,13 +90,11 @@ function BlogPageContent() {
             const imgMatch = post.htmlContent.match(/<img[^>]+src="([^">]+)"/)
 
             if (imgMatch && imgMatch[1]) {
-              extractedImg = imgMatch[1]
+              extractedImg = optimizeSanityImageUrl(imgMatch[1])
             }
 
             if (!extractedDesc || extractedDesc === "點擊閱讀詳情...") {
-              const pureText = post.htmlContent
-                .replace(/<[^>]*>?/gm, "")
-                .trim()
+              const pureText = post.htmlContent.replace(/<[^>]*>?/gm, "").trim()
 
               extractedDesc =
                 pureText.substring(0, 100) +
@@ -108,8 +113,8 @@ function BlogPageContent() {
             thumbnail:
               extractedImg ||
               youtubeThumb ||
-              post.imageUrl ||
-              post.mainImage ||
+              optimizeSanityImageUrl(post.imageUrl) ||
+              optimizeSanityImageUrl(post.mainImage) ||
               "",
             description: extractedDesc,
             tags: Array.isArray(post.tags) ? post.tags : [],
@@ -228,6 +233,7 @@ function BlogPageContent() {
                                   src={post.thumbnail}
                                   alt={post.title}
                                   className="h-full w-full object-cover transition-all duration-700 group-hover:scale-105"
+                                  loading="lazy"
                                 />
                               ) : (
                                 <div className="flex h-full w-full items-center justify-center bg-secondary text-sm text-muted-foreground">
@@ -344,9 +350,7 @@ function BlogPageContent() {
                   )}
 
                   <button
-                    onClick={() =>
-                      setPage((p) => Math.min(totalPages, p + 1))
-                    }
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page >= totalPages}
                     className="ml-2 rounded-full border border-border bg-white/70 px-6 py-3 text-sm font-medium text-muted-foreground transition-all hover:border-primary/40 hover:text-primary disabled:opacity-30"
                   >

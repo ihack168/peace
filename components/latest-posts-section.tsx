@@ -16,6 +16,16 @@ interface Post {
   htmlContent?: string;
 }
 
+function optimizeSanityImageUrl(url?: string) {
+  if (!url) return "";
+
+  if (!url.includes("cdn.sanity.io/images")) return url;
+
+  if (url.includes("auto=format")) return url;
+
+  return `${url}${url.includes("?") ? "&" : "?"}auto=format`;
+}
+
 export function LatestPostsSection() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -51,7 +61,7 @@ export function LatestPostsSection() {
             const imgMatch = post.htmlContent.match(/<img[^>]+src="([^">]+)"/);
 
             if (imgMatch && imgMatch[1]) {
-              extractedImg = imgMatch[1];
+              extractedImg = optimizeSanityImageUrl(imgMatch[1]);
             }
 
             if (!extractedDesc || extractedDesc === "點擊閱讀詳情...") {
@@ -76,8 +86,8 @@ export function LatestPostsSection() {
             thumbnail:
               extractedImg ||
               youtubeThumb ||
-              post.imageUrl ||
-              post.mainImage ||
+              optimizeSanityImageUrl(post.imageUrl) ||
+              optimizeSanityImageUrl(post.mainImage) ||
               "",
             description: extractedDesc,
             tags: Array.isArray(post.tags) ? post.tags : [],
@@ -150,6 +160,7 @@ export function LatestPostsSection() {
                           src={post.thumbnail}
                           alt={post.title}
                           className="h-full w-full object-cover transition-all duration-700 group-hover:scale-105"
+                          loading="lazy"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center bg-secondary text-sm text-muted-foreground">
