@@ -2,7 +2,7 @@ import {defineCliConfig} from 'sanity/cli'
 
 export default defineCliConfig({
   api: {
-    projectId: 'no0ub4vm', // 這是你的新專案 ID
+    projectId: '2wcsphdc', // 這是你的新專案 ID
     dataset: 'production'
   },
   deployment: {
