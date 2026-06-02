@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Noto_Sans_TC, Geist_Mono } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
+import { Navbar } from '@/components/navbar'
 
 const siteUrl = 'https://peace.line88.tw'
 
@@ -144,7 +145,7 @@ export default function RootLayout({
             });
           `}
         </Script>
-
+        <Navbar />
         {children}
       </body>
     </html>
