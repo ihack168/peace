@@ -11,6 +11,21 @@ const LINE_ADD_URL = "https://line.me/R/ti/p/~0910933178"
 const VENDOR_ID = "peace"
 const VENDOR_NAME = "台灣生命資訊網"
 
+const DISTRICTS = [
+  "台北",
+  "新北",
+  "桃園",
+  "新竹",
+  "台中",
+  "彰化",
+  "雲林",
+  "嘉義",
+  "台南",
+  "高雄",
+]
+
+const SERVICE_TYPES = ["後事", "塔位", "生前契約", "法律", "補助"]
+
 interface LineConsultButtonProps {
   children: ReactNode
   className?: string
@@ -24,11 +39,14 @@ export function LineConsultButton({
 }: LineConsultButtonProps) {
   const [mounted, setMounted] = useState(false)
   const [showModal, setShowModal] = useState(false)
-  const [modalStep, setModalStep] = useState<"role" | "form">("role")
-  const [role, setRole] = useState("")
+  const [modalStep, setModalStep] = useState<"district" | "service" | "form">(
+    "district"
+  )
+  const [district, setDistrict] = useState("")
+  const [serviceType, setServiceType] = useState("")
   const [lastName, setLastName] = useState("")
   const [phoneLast3, setPhoneLast3] = useState("")
-  const [tenantBlocked, setTenantBlocked] = useState(false)
+  const [serviceBlocked, setServiceBlocked] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -37,32 +55,39 @@ export function LineConsultButton({
 
   const resetModal = () => {
     setShowModal(false)
-    setModalStep("role")
-    setRole("")
+    setModalStep("district")
+    setDistrict("")
+    setServiceType("")
     setLastName("")
     setPhoneLast3("")
-    setTenantBlocked(false)
+    setServiceBlocked(false)
     setLoading(false)
   }
 
   const handleOpenModal = () => {
     setShowModal(true)
-    setModalStep("role")
-    setRole("")
+    setModalStep("district")
+    setDistrict("")
+    setServiceType("")
     setLastName("")
     setPhoneLast3("")
-    setTenantBlocked(false)
+    setServiceBlocked(false)
   }
 
-  const handleSelectRole = (selectedRole: string) => {
-    setRole(selectedRole)
+  const handleSelectDistrict = (selectedDistrict: string) => {
+    setDistrict(selectedDistrict)
+    setModalStep("service")
+  }
 
-    if (selectedRole === "tenant") {
-      setTenantBlocked(true)
+  const handleSelectService = (selectedService: string) => {
+    setServiceType(selectedService)
+
+    if (selectedService === "法律" || selectedService === "補助") {
+      setServiceBlocked(true)
       return
     }
 
-    setTenantBlocked(false)
+    setServiceBlocked(false)
     setModalStep("form")
   }
 
@@ -70,8 +95,18 @@ export function LineConsultButton({
     const cleanLastName = lastName.trim()
     const cleanPhoneLast3 = phoneLast3.trim()
 
-    if (role !== "landlord") {
-      alert("請先選擇房東")
+    if (!district) {
+      alert("請先選擇地區")
+      return
+    }
+
+    if (!serviceType) {
+      alert("請先選擇需要的服務內容")
+      return
+    }
+
+    if (serviceType === "法律" || serviceType === "補助") {
+      alert("很抱歉，我們不提供此項諮詢")
       return
     }
 
@@ -94,7 +129,8 @@ export function LineConsultButton({
           action: "lineConsult",
           vendorId: VENDOR_ID,
           vendorName: VENDOR_NAME,
-          role,
+          district,
+          serviceType,
           lastName: cleanLastName,
           phoneLast3: cleanPhoneLast3,
           sourcePage: window.location.href,
@@ -109,7 +145,6 @@ export function LineConsultButton({
       }
 
       resetModal()
-
       window.open(LINE_ADD_URL, "_blank", "noopener,noreferrer")
     } catch (error) {
       alert("送出失敗，請稍後再試")
@@ -121,53 +156,37 @@ export function LineConsultButton({
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black/50 px-4 py-8">
       <div className="my-auto w-full max-w-sm rounded-2xl bg-white p-6 text-left shadow-xl">
-        {modalStep === "role" && (
+        {modalStep === "district" && (
           <>
-            <h3 className="text-center text-3xl font-black tracking-wide text-red-600 animate-pulse">
-              你是房東還是房客？
+            <h3 className="text-center text-2xl font-black tracking-wide text-foreground">
+              請選擇服務地區
             </h3>
 
-            <div className="mt-8 grid grid-cols-2 gap-4">
-              <label
-                className={`flex cursor-pointer items-center justify-center gap-2 rounded-2xl border px-4 py-5 text-lg font-black transition-all ${
-                  role === "landlord"
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border text-foreground"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="role-line-consult"
-                  checked={role === "landlord"}
-                  onChange={() => handleSelectRole("landlord")}
-                  className="h-5 w-5"
-                />
-                房東
-              </label>
+            <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">
+              先選擇所在地區，方便我們判斷可協助的服務範圍。
+            </p>
 
-              <label
-                className={`flex cursor-pointer items-center justify-center gap-2 rounded-2xl border px-4 py-5 text-lg font-black transition-all ${
-                  role === "tenant"
-                    ? "border-red-600 bg-red-100 text-red-700 shadow-md"
-                    : "border-border text-foreground"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="role-line-consult"
-                  checked={role === "tenant"}
-                  onChange={() => handleSelectRole("tenant")}
-                  className="h-5 w-5"
-                />
-                房客
-              </label>
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              {DISTRICTS.map((item) => (
+                <label
+                  key={item}
+                  className={`flex cursor-pointer items-center justify-center gap-2 rounded-2xl border px-4 py-4 text-base font-black transition-all ${
+                    district === item
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-foreground"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="district-line-consult"
+                    checked={district === item}
+                    onChange={() => handleSelectDistrict(item)}
+                    className="h-5 w-5"
+                  />
+                  {item}
+                </label>
+              ))}
             </div>
-
-            {tenantBlocked && (
-              <p className="mt-5 rounded-2xl border-2 border-red-500 bg-red-50 px-4 py-4 text-center text-base font-black text-red-700 shadow-sm">
-                很抱歉，我們僅提供房東咨詢
-              </p>
-            )}
 
             <button
               type="button"
@@ -179,6 +198,70 @@ export function LineConsultButton({
           </>
         )}
 
+        {modalStep === "service" && (
+          <>
+            <h3 className="text-center text-2xl font-black tracking-wide text-foreground">
+              需要哪一類服務？
+            </h3>
+
+            <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">
+              已選擇地區：{district}
+            </p>
+
+            <div className="mt-6 grid grid-cols-1 gap-3">
+              {SERVICE_TYPES.map((item) => (
+                <label
+                  key={item}
+                  className={`flex cursor-pointer items-center justify-center gap-2 rounded-2xl border px-4 py-4 text-base font-black transition-all ${
+                    serviceType === item
+                      ? item === "法律" || item === "補助"
+                        ? "border-red-600 bg-red-100 text-red-700 shadow-md"
+                        : "border-primary bg-primary/10 text-primary"
+                      : "border-border text-foreground"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="service-line-consult"
+                    checked={serviceType === item}
+                    onChange={() => handleSelectService(item)}
+                    className="h-5 w-5"
+                  />
+                  {item}
+                </label>
+              ))}
+            </div>
+
+            {serviceBlocked && (
+              <p className="mt-5 rounded-2xl border-2 border-red-500 bg-red-50 px-4 py-4 text-center text-base font-black text-red-700 shadow-sm">
+                很抱歉，我們不提供此項諮詢
+              </p>
+            )}
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setModalStep("district")
+                  setServiceType("")
+                  setServiceBlocked(false)
+                }}
+                className="flex-1 rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground"
+              >
+                上一步
+              </button>
+
+              <button
+                type="button"
+                onClick={resetModal}
+                className="flex-1 rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground"
+              >
+                取消
+              </button>
+            </div>
+          </>
+        )}
+
         {modalStep === "form" && (
           <>
             <h3 className="text-xl font-black text-foreground">
@@ -186,6 +269,8 @@ export function LineConsultButton({
             </h3>
 
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              地區：{district}｜服務：{serviceType}
+              <br />
               請留下貴姓與手機末 3 碼，送出後會自動開啟 LINE 加好友。
             </p>
 
@@ -198,7 +283,7 @@ export function LineConsultButton({
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="例如：王"
-                className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm outline-none focus:border-primary"
+                className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm text-foreground outline-none focus:border-primary"
               />
             </div>
 
@@ -216,7 +301,7 @@ export function LineConsultButton({
                 placeholder="例如：168"
                 inputMode="numeric"
                 maxLength={3}
-                className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm outline-none focus:border-primary"
+                className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm text-foreground outline-none focus:border-primary"
               />
             </div>
 
@@ -224,11 +309,9 @@ export function LineConsultButton({
               <button
                 type="button"
                 onClick={() => {
-                  setModalStep("role")
-                  setRole("")
+                  setModalStep("service")
                   setLastName("")
                   setPhoneLast3("")
-                  setTenantBlocked(false)
                 }}
                 disabled={loading}
                 className="flex-1 rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground"
