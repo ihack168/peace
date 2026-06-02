@@ -21,7 +21,7 @@ export default function LinePage() {
         <div className="relative overflow-hidden">
           <Image
             src="/images/line-consultant.png"
-            alt="凌群包租代管服務專員"
+            alt="台灣生命資訊網專員"
             width={800}
             height={1000}
             priority

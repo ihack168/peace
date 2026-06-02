@@ -8,8 +8,8 @@ const GOOGLE_SCRIPT_URL =
 
 const LINE_ADD_URL = "https://line.me/R/ti/p/~0910933178"
 
-const VENDOR_ID = "linkrich"
-const VENDOR_NAME = "社會住宅包租代管資訊站"
+const VENDOR_ID = "peace"
+const VENDOR_NAME = "台灣生命資訊網"
 
 interface LineConsultButtonProps {
   children: ReactNode
