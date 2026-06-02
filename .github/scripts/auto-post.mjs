@@ -1,11 +1,11 @@
 import https from 'https';
 
-const SANITY_PROJECT_ID = 'no0ub4vm';
+const SANITY_PROJECT_ID = '2wcsphdc';
 const SANITY_DATASET = 'production';
 const SANITY_TOKEN = process.env.SANITY_TOKEN;
 
 // 只要改這裡，就能切換不同 sheet
-const SHEET_NAME = 'linkrich';
+const SHEET_NAME = 'peace';
 
 // Google Apps Script 網址
 const GOOGLE_SCRIPT_BASE_URL =
