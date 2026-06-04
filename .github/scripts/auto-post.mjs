@@ -14,36 +14,27 @@ const GOOGLE_SCRIPT_BASE_URL =
 const GOOGLE_SCRIPT_URL =
   `${GOOGLE_SCRIPT_BASE_URL}?sheet=${encodeURIComponent(SHEET_NAME)}`;
 
-async function fetchNextPost() {
+const REQUEST_TIMEOUT = 15000;
+
+function getJsonFromUrl(url, label) {
   return new Promise((resolve, reject) => {
-    https
-      .get(GOOGLE_SCRIPT_URL, (res) => {
-        console.log(`🌐 Apps Script HTTP 狀態碼：${res.statusCode}`);
+    const req = https.get(
+      url,
+      {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 GitHub-Actions-AutoPost',
+        },
+        timeout: REQUEST_TIMEOUT,
+      },
+      (res) => {
+        console.log(`🌐 ${label} HTTP 狀態碼：${res.statusCode}`);
 
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          console.log(`➡️ Apps Script redirect 到：${res.headers.location}`);
+          console.log(`➡️ ${label} redirect 到：${res.headers.location}`);
 
-          https
-            .get(res.headers.location, (res2) => {
-              console.log(`🌐 Redirect 後 HTTP 狀態碼：${res2.statusCode}`);
-
-              let data = '';
-
-              res2.on('data', (chunk) => {
-                data += chunk;
-              });
-
-              res2.on('end', () => {
-                console.log(`📦 Apps Script 原始回傳：${data}`);
-
-                try {
-                  resolve(JSON.parse(data));
-                } catch (err) {
-                  reject(new Error(`Apps Script JSON 解析失敗：${data}`));
-                }
-              });
-            })
-            .on('error', reject);
+          getJsonFromUrl(res.headers.location, `${label} redirect`)
+            .then(resolve)
+            .catch(reject);
 
           return;
         }
@@ -55,17 +46,28 @@ async function fetchNextPost() {
         });
 
         res.on('end', () => {
-          console.log(`📦 Apps Script 原始回傳：${data}`);
+          console.log(`📦 ${label} 原始回傳：${data}`);
 
           try {
             resolve(JSON.parse(data));
           } catch (err) {
-            reject(new Error(`Apps Script JSON 解析失敗：${data}`));
+            reject(new Error(`${label} JSON 解析失敗：${data}`));
           }
         });
-      })
-      .on('error', reject);
+      }
+    );
+
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error(`${label} 請求逾時，超過 ${REQUEST_TIMEOUT / 1000} 秒沒有回應`));
+    });
+
+    req.on('error', reject);
   });
+}
+
+async function fetchNextPost() {
+  return getJsonFromUrl(GOOGLE_SCRIPT_URL, 'Apps Script');
 }
 
 async function markAsPublishedOnSheet(rowNumber) {
@@ -79,7 +81,9 @@ async function markAsPublishedOnSheet(rowNumber) {
         headers: {
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(data),
+          'User-Agent': 'Mozilla/5.0 GitHub-Actions-AutoPost',
         },
+        timeout: REQUEST_TIMEOUT,
       },
       (res) => {
         console.log(`📝 回填 Google Sheet HTTP 狀態碼：${res.statusCode}`);
@@ -87,15 +91,30 @@ async function markAsPublishedOnSheet(rowNumber) {
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           console.log(`➡️ 回填 redirect 到：${res.headers.location}`);
 
-          https
-            .get(res.headers.location, (res2) => {
+          const redirectReq = https.get(
+            res.headers.location,
+            {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 GitHub-Actions-AutoPost',
+              },
+              timeout: REQUEST_TIMEOUT,
+            },
+            (res2) => {
               res2.on('data', () => {});
               res2.on('end', () => resolve());
-            })
-            .on('error', (e) => {
-              console.error('❌ 回填 redirect 失敗:', e.message);
-              resolve();
-            });
+            }
+          );
+
+          redirectReq.on('timeout', () => {
+            redirectReq.destroy();
+            console.error('❌ 回填 redirect 請求逾時');
+            resolve();
+          });
+
+          redirectReq.on('error', (e) => {
+            console.error('❌ 回填 redirect 失敗:', e.message);
+            resolve();
+          });
 
           return;
         }
@@ -104,6 +123,12 @@ async function markAsPublishedOnSheet(rowNumber) {
         res.on('end', () => resolve());
       }
     );
+
+    req.on('timeout', () => {
+      req.destroy();
+      console.error('❌ 回填 Google Sheet 請求逾時');
+      resolve();
+    });
 
     req.on('error', (e) => {
       console.error('❌ 回填失敗:', e.message);
@@ -193,6 +218,7 @@ async function createPost(title, htmlContent, tags, webpImageUrl) {
           Authorization: `Bearer ${SANITY_TOKEN}`,
           'Content-Length': Buffer.byteLength(body),
         },
+        timeout: REQUEST_TIMEOUT,
       },
       (res) => {
         let data = '';
@@ -214,6 +240,11 @@ async function createPost(title, htmlContent, tags, webpImageUrl) {
         });
       }
     );
+
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error(`Sanity 請求逾時，超過 ${REQUEST_TIMEOUT / 1000} 秒沒有回應`));
+    });
 
     req.on('error', reject);
     req.write(body);
@@ -261,8 +292,6 @@ async function main() {
     const title = String(post.title || '').trim();
     const html = String(post.html || '').trim();
     const tags = String(post.tags || '').trim();
-
-    // H欄圖片網址 webp，來自 Apps Script 的 webpImage
     const webpImageUrl = String(post.webpImage || '').trim();
 
     console.log(`📌 標題：${title}`);
