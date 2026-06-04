@@ -39,13 +39,15 @@ function getJsonFromUrl(url, label) {
           return;
         }
 
-        let data = '';
+        const chunks = [];
 
         res.on('data', (chunk) => {
-          data += chunk;
+          chunks.push(chunk);
         });
 
         res.on('end', () => {
+          const data = Buffer.concat(chunks).toString('utf8');
+
           console.log(`📦 ${label} 原始回傳：${data}`);
 
           try {
@@ -79,8 +81,8 @@ async function markAsPublishedOnSheet(rowNumber) {
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(data),
+          'Content-Type': 'application/json; charset=utf-8',
+          'Content-Length': Buffer.byteLength(data, 'utf8'),
           'User-Agent': 'Mozilla/5.0 GitHub-Actions-AutoPost',
         },
         timeout: REQUEST_TIMEOUT,
@@ -135,7 +137,7 @@ async function markAsPublishedOnSheet(rowNumber) {
       resolve();
     });
 
-    req.write(data);
+    req.write(Buffer.from(data, 'utf8'));
     req.end();
   });
 }
@@ -180,6 +182,12 @@ async function createPost(title, htmlContent, tags, webpImageUrl) {
 
   const finalHtml = buildFinalHtml(title, htmlContent, webpImageUrl);
 
+  if (finalHtml.includes('�')) {
+    console.warn('⚠️ 警告：準備寫入 Sanity 的 HTML 已經含有亂碼 �，請檢查 Apps Script 原始回傳');
+  } else {
+    console.log('✅ 準備寫入 Sanity 的 HTML 沒有偵測到亂碼 �');
+  }
+
   const doc = {
     _type: 'post',
     title,
@@ -214,22 +222,24 @@ async function createPost(title, htmlContent, tags, webpImageUrl) {
         path: `/v2024-01-01/data/mutate/${SANITY_DATASET}`,
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
           Authorization: `Bearer ${SANITY_TOKEN}`,
-          'Content-Length': Buffer.byteLength(body),
+          'Content-Length': Buffer.byteLength(body, 'utf8'),
         },
         timeout: REQUEST_TIMEOUT,
       },
       (res) => {
-        let data = '';
+        const chunks = [];
 
         console.log(`📡 Sanity HTTP 狀態碼：${res.statusCode}`);
 
         res.on('data', (chunk) => {
-          data += chunk;
+          chunks.push(chunk);
         });
 
         res.on('end', () => {
+          const data = Buffer.concat(chunks).toString('utf8');
+
           console.log(`📦 Sanity 原始回傳：${data}`);
 
           try {
@@ -247,7 +257,7 @@ async function createPost(title, htmlContent, tags, webpImageUrl) {
     });
 
     req.on('error', reject);
-    req.write(body);
+    req.write(Buffer.from(body, 'utf8'));
     req.end();
   });
 }
