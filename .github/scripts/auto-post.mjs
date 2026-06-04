@@ -18,16 +18,28 @@ async function fetchNextPost() {
   return new Promise((resolve, reject) => {
     https
       .get(GOOGLE_SCRIPT_URL, (res) => {
+        console.log(`🌐 Apps Script HTTP 狀態碼：${res.statusCode}`);
+
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          console.log(`➡️ Apps Script redirect 到：${res.headers.location}`);
+
           https
             .get(res.headers.location, (res2) => {
+              console.log(`🌐 Redirect 後 HTTP 狀態碼：${res2.statusCode}`);
+
               let data = '';
-              res2.on('data', (chunk) => (data += chunk));
+
+              res2.on('data', (chunk) => {
+                data += chunk;
+              });
+
               res2.on('end', () => {
+                console.log(`📦 Apps Script 原始回傳：${data}`);
+
                 try {
                   resolve(JSON.parse(data));
                 } catch (err) {
-                  reject(new Error(`Apps Script JSON 解析失敗: ${data}`));
+                  reject(new Error(`Apps Script JSON 解析失敗：${data}`));
                 }
               });
             })
@@ -37,12 +49,18 @@ async function fetchNextPost() {
         }
 
         let data = '';
-        res.on('data', (chunk) => (data += chunk));
+
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+
         res.on('end', () => {
+          console.log(`📦 Apps Script 原始回傳：${data}`);
+
           try {
             resolve(JSON.parse(data));
           } catch (err) {
-            reject(new Error(`Apps Script JSON 解析失敗: ${data}`));
+            reject(new Error(`Apps Script JSON 解析失敗：${data}`));
           }
         });
       })
@@ -64,7 +82,11 @@ async function markAsPublishedOnSheet(rowNumber) {
         },
       },
       (res) => {
+        console.log(`📝 回填 Google Sheet HTTP 狀態碼：${res.statusCode}`);
+
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          console.log(`➡️ 回填 redirect 到：${res.headers.location}`);
+
           https
             .get(res.headers.location, (res2) => {
               res2.on('data', () => {});
@@ -103,7 +125,25 @@ function getSafePostCount(value) {
   return Math.floor(count);
 }
 
+function buildFinalHtml(title, htmlContent, webpImageUrl) {
+  let finalHtml = htmlContent || '';
+
+  const imageUrl = String(webpImageUrl || '').trim();
+
+  console.log(`🖼️ H欄 webpImage 圖片網址：${imageUrl || '(空)'}`);
+
+  if (imageUrl) {
+    finalHtml = `<img src="${imageUrl}" alt="${title}">\n` + finalHtml;
+  }
+
+  return finalHtml;
+}
+
 async function createPost(title, htmlContent, tags, webpImageUrl) {
+  if (!SANITY_TOKEN) {
+    throw new Error('找不到 SANITY_TOKEN，請確認 GitHub Secrets 裡有設定 SANITY_TOKEN');
+  }
+
   const cleanTitle =
     title
       .toLowerCase()
@@ -113,16 +153,7 @@ async function createPost(title, htmlContent, tags, webpImageUrl) {
   const uniqueId = Math.floor(Date.now() / 1000).toString().slice(-6);
   const finalSlug = encodeURIComponent(shortTitle) + `-${uniqueId}`;
 
-  let finalHtml = htmlContent || '';
-
-  const imageUrl =
-    String(webpImageUrl || '').trim();
-
-  console.log(`🖼️ H欄 webp 圖片網址：${imageUrl || '(空)'}`);
-
-  if (imageUrl) {
-    finalHtml = `<img src="${imageUrl}" alt="${title}">\n` + finalHtml;
-  }
+  const finalHtml = buildFinalHtml(title, htmlContent, webpImageUrl);
 
   const doc = {
     _type: 'post',
@@ -166,13 +197,19 @@ async function createPost(title, htmlContent, tags, webpImageUrl) {
       (res) => {
         let data = '';
 
-        res.on('data', (chunk) => (data += chunk));
+        console.log(`📡 Sanity HTTP 狀態碼：${res.statusCode}`);
+
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
 
         res.on('end', () => {
+          console.log(`📦 Sanity 原始回傳：${data}`);
+
           try {
             resolve(JSON.parse(data));
           } catch (error) {
-            reject(new Error(`Sanity 回傳 JSON 解析失敗: ${data}`));
+            reject(new Error(`Sanity 回傳 JSON 解析失敗：${data}`));
           }
         });
       }
@@ -186,6 +223,7 @@ async function createPost(title, htmlContent, tags, webpImageUrl) {
 
 async function main() {
   console.log(`📥 從 Apps Script 讀取 sheet：${SHEET_NAME}`);
+  console.log(`🔗 Apps Script URL：${GOOGLE_SCRIPT_URL}`);
 
   const firstPost = await fetchNextPost();
 
@@ -201,9 +239,10 @@ async function main() {
   console.log(`🚀 本次實際預計發 ${postCount} 篇`);
 
   for (let i = 0; i < postCount; i++) {
-    console.log(`\n====================`);
+    console.log('');
+    console.log('====================');
     console.log(`🚀 第 ${i + 1} 篇 / 共 ${postCount} 篇`);
-    console.log(`====================`);
+    console.log('====================');
 
     const post =
       i === 0
@@ -236,7 +275,7 @@ async function main() {
       break;
     }
 
-    console.log(`🚀 發布: ${title}`);
+    console.log(`🚀 發布：${title}`);
 
     const result =
       await createPost(
@@ -263,6 +302,7 @@ main()
     process.exit(0);
   })
   .catch((error) => {
-    console.error('❌ 主流程失敗:', error);
+    console.error('❌ 主流程失敗 message:', error.message);
+    console.error('❌ 主流程失敗 stack:', error.stack);
     process.exit(1);
   });
