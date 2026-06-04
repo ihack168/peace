@@ -103,40 +103,7 @@ function getSafePostCount(value) {
   return Math.floor(count);
 }
 
-function parseSanityImageUrl(imageRaw) {
-  if (!imageRaw) return null;
-
-  const raw = String(imageRaw).trim();
-
-  if (!raw) return null;
-
-  // 如果 F 欄本身就是圖片網址，直接使用
-  if (raw.startsWith('http://') || raw.startsWith('https://')) {
-    return raw;
-  }
-
-  // F 欄格式：
-  // line-ai-bot-61.png, image-xxxxx-1672x941-png
-  const parts = raw.split(',');
-  const assetPart =
-    parts.length > 1
-      ? parts[1].trim()
-      : parts[0].trim();
-
-  const imageAssetId = assetPart.replace(/^image-/, '');
-  const lastDashIndex = imageAssetId.lastIndexOf('-');
-
-  if (lastDashIndex === -1) return null;
-
-  const finalString =
-    imageAssetId.substring(0, lastDashIndex) +
-    '.' +
-    imageAssetId.substring(lastDashIndex + 1);
-
-  return `https://cdn.sanity.io/images/${SANITY_PROJECT_ID}/${SANITY_DATASET}/${finalString}`;
-}
-
-async function createPost(title, htmlContent, tags, imageRaw) {
+async function createPost(title, htmlContent, tags, webpImageUrl) {
   const cleanTitle =
     title
       .toLowerCase()
@@ -147,10 +114,11 @@ async function createPost(title, htmlContent, tags, imageRaw) {
   const finalSlug = encodeURIComponent(shortTitle) + `-${uniqueId}`;
 
   let finalHtml = htmlContent || '';
-  const imageUrl = parseSanityImageUrl(imageRaw);
 
-  console.log(`🖼️ F欄原始圖片資料：${imageRaw || '(空)'}`);
-  console.log(`🖼️ 解析後圖片網址：${imageUrl || '(無圖片)'}`);
+  const imageUrl =
+    String(webpImageUrl || '').trim();
+
+  console.log(`🖼️ H欄 webp 圖片網址：${imageUrl || '(空)'}`);
 
   if (imageUrl) {
     finalHtml = `<img src="${imageUrl}" alt="${title}">\n` + finalHtml;
@@ -254,10 +222,13 @@ async function main() {
     const title = String(post.title || '').trim();
     const html = String(post.html || '').trim();
     const tags = String(post.tags || '').trim();
-    const imageRaw = String(post.image || '').trim();
+
+    // H欄圖片網址 webp，來自 Apps Script 的 webpImage
+    const webpImageUrl = String(post.webpImage || '').trim();
 
     console.log(`📌 標題：${title}`);
     console.log(`🏷️ Tags：${tags || '(空)'}`);
+    console.log(`🖼️ H欄 webpImage：${webpImageUrl || '(空)'}`);
 
     if (!title || !html) {
       console.log('⚠️ 標題或 HTML 內容是空的，停止發文');
@@ -272,7 +243,7 @@ async function main() {
         title,
         html,
         tags,
-        imageRaw
+        webpImageUrl
       );
 
     if (result.results || result.mutations) {
