@@ -4,10 +4,10 @@ const SANITY_PROJECT_ID = '2wcsphdc';
 const SANITY_DATASET = 'production';
 const SANITY_TOKEN = process.env.SANITY_TOKEN;
 
-// 只要改這裡，就能切換不同 sheet
 const SHEET_NAME = 'peace';
 
-// Google Apps Script 網址
+const OFFICIAL_BASE_URL = 'https://peace.line88.tw/blog';
+
 const GOOGLE_SCRIPT_BASE_URL =
   'https://script.google.com/macros/s/AKfycbwFpZDhMveHhdOYdDkh02JpWk28jUCBqikyM-Urg_6Uw2jTH7d8ZluKxinKTWh5_20N/exec';
 
@@ -15,6 +15,20 @@ const GOOGLE_SCRIPT_URL =
   `${GOOGLE_SCRIPT_BASE_URL}?sheet=${encodeURIComponent(SHEET_NAME)}`;
 
 const REQUEST_TIMEOUT = 15000;
+
+function printSanityDebugInfo() {
+  console.log('====================');
+  console.log('🔍 Sanity Debug Info');
+  console.log('====================');
+  console.log(`🧩 Sanity Project：${SANITY_PROJECT_ID}`);
+  console.log(`🧩 Sanity Dataset：${SANITY_DATASET}`);
+  console.log(`🔐 SANITY_TOKEN 是否存在：${SANITY_TOKEN ? '有' : '沒有'}`);
+  console.log(`🔐 SANITY_TOKEN 長度：${SANITY_TOKEN ? SANITY_TOKEN.length : 0}`);
+  console.log(`🔐 SANITY_TOKEN 是否誤含 Bearer：${SANITY_TOKEN?.includes('Bearer') ? '是' : '否'}`);
+  console.log(`🔐 SANITY_TOKEN 前 5 碼：${SANITY_TOKEN ? SANITY_TOKEN.slice(0, 5) : '(空)'}`);
+  console.log(`🔐 SANITY_TOKEN 後 8 碼：${SANITY_TOKEN ? SANITY_TOKEN.slice(-8) : '(空)'}`);
+  console.log('====================');
+}
 
 function getJsonFromUrl(url, label) {
   return new Promise((resolve, reject) => {
@@ -68,12 +82,8 @@ function getJsonFromUrl(url, label) {
   });
 }
 
-async function fetchNextPost() {
-  return getJsonFromUrl(GOOGLE_SCRIPT_URL, 'Apps Script');
-}
-
-async function markAsPublishedOnSheet(rowNumber) {
-  const data = JSON.stringify({ row: rowNumber });
+function postJsonToAppsScript(payload, label) {
+  const data = JSON.stringify(payload);
 
   return new Promise((resolve) => {
     const req = https.request(
@@ -88,58 +98,104 @@ async function markAsPublishedOnSheet(rowNumber) {
         timeout: REQUEST_TIMEOUT,
       },
       (res) => {
-        console.log(`📝 回填 Google Sheet HTTP 狀態碼：${res.statusCode}`);
+        const chunks = [];
+
+        console.log(`📝 ${label} Google Sheet HTTP 狀態碼：${res.statusCode}`);
 
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          console.log(`➡️ 回填 redirect 到：${res.headers.location}`);
+          console.log(`➡️ ${label} redirect 到：${res.headers.location}`);
 
-          const redirectReq = https.get(
+          const redirectReq = https.request(
             res.headers.location,
             {
+              method: 'POST',
               headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Content-Length': Buffer.byteLength(data, 'utf8'),
                 'User-Agent': 'Mozilla/5.0 GitHub-Actions-AutoPost',
               },
               timeout: REQUEST_TIMEOUT,
             },
             (res2) => {
-              res2.on('data', () => {});
-              res2.on('end', () => resolve());
+              const redirectChunks = [];
+
+              res2.on('data', (chunk) => {
+                redirectChunks.push(chunk);
+              });
+
+              res2.on('end', () => {
+                const redirectText = Buffer.concat(redirectChunks).toString('utf8');
+                console.log(`📦 ${label} redirect 回傳：${redirectText}`);
+                resolve(redirectText);
+              });
             }
           );
 
           redirectReq.on('timeout', () => {
             redirectReq.destroy();
-            console.error('❌ 回填 redirect 請求逾時');
-            resolve();
+            console.error(`❌ ${label} redirect 請求逾時`);
+            resolve('');
           });
 
           redirectReq.on('error', (e) => {
-            console.error('❌ 回填 redirect 失敗:', e.message);
-            resolve();
+            console.error(`❌ ${label} redirect 失敗:`, e.message);
+            resolve('');
           });
 
+          redirectReq.write(Buffer.from(data, 'utf8'));
+          redirectReq.end();
           return;
         }
 
-        res.on('data', () => {});
-        res.on('end', () => resolve());
+        res.on('data', (chunk) => {
+          chunks.push(chunk);
+        });
+
+        res.on('end', () => {
+          const text = Buffer.concat(chunks).toString('utf8');
+          console.log(`📦 ${label} 回傳：${text}`);
+          resolve(text);
+        });
       }
     );
 
     req.on('timeout', () => {
       req.destroy();
-      console.error('❌ 回填 Google Sheet 請求逾時');
-      resolve();
+      console.error(`❌ ${label} Google Sheet 請求逾時`);
+      resolve('');
     });
 
     req.on('error', (e) => {
-      console.error('❌ 回填失敗:', e.message);
-      resolve();
+      console.error(`❌ ${label} 失敗:`, e.message);
+      resolve('');
     });
 
     req.write(Buffer.from(data, 'utf8'));
     req.end();
   });
+}
+
+async function fetchNextPost() {
+  return getJsonFromUrl(GOOGLE_SCRIPT_URL, 'Apps Script');
+}
+
+async function saveOfficialUrlToSheet(rowNumber, officialUrl) {
+  return postJsonToAppsScript(
+    {
+      row: rowNumber,
+      officialUrl: officialUrl,
+    },
+    '回寫 I 欄 officialUrl'
+  );
+}
+
+async function markAsPublishedOnSheet(rowNumber) {
+  return postJsonToAppsScript(
+    {
+      row: rowNumber,
+    },
+    '回填 published'
+  );
 }
 
 function getSafePostCount(value) {
@@ -171,14 +227,21 @@ async function createPost(title, htmlContent, tags, webpImageUrl) {
     throw new Error('找不到 SANITY_TOKEN，請確認 GitHub Secrets 裡有設定 SANITY_TOKEN');
   }
 
-  const cleanTitle =
-    title
-      .toLowerCase()
-      .replace(/[^\u4e00-\u9fa5a-z0-9]/g, '');
+  if (SANITY_TOKEN.includes('Bearer')) {
+    throw new Error('SANITY_TOKEN 裡面不可以包含 Bearer，GitHub Secret 只要貼 token 本體');
+  }
+
+  const cleanTitle = title
+    .toLowerCase()
+    .replace(/[^\u4e00-\u9fa5a-z0-9]/g, '');
 
   const shortTitle = cleanTitle.substring(0, 15);
   const uniqueId = Math.floor(Date.now() / 1000).toString().slice(-6);
   const finalSlug = encodeURIComponent(shortTitle) + `-${uniqueId}`;
+  const officialUrl = `${OFFICIAL_BASE_URL}/${finalSlug}`;
+
+  console.log(`🔗 本篇 slug：${finalSlug}`);
+  console.log(`🔗 本篇官網網址：${officialUrl}`);
 
   const finalHtml = buildFinalHtml(title, htmlContent, webpImageUrl);
 
@@ -242,11 +305,26 @@ async function createPost(title, htmlContent, tags, webpImageUrl) {
 
           console.log(`📦 Sanity 原始回傳：${data}`);
 
+          let parsed;
+
           try {
-            resolve(JSON.parse(data));
+            parsed = JSON.parse(data);
           } catch (error) {
             reject(new Error(`Sanity 回傳 JSON 解析失敗：${data}`));
+            return;
           }
+
+          if (res.statusCode === 403) {
+            console.error('❌ Sanity 403：目前這顆 SANITY_TOKEN 沒有 create 權限');
+            console.error('❌ 請確認 GitHub Secret SANITY_TOKEN 貼的是 Sanity 後台新建立的 Editor token');
+            console.error('❌ 如果剛更新 Secret，請重新 Run workflow，不要用正在執行中的舊 workflow');
+          }
+
+          resolve({
+            sanityResult: parsed,
+            slug: finalSlug,
+            officialUrl: officialUrl,
+          });
         });
       }
     );
@@ -263,6 +341,8 @@ async function createPost(title, htmlContent, tags, webpImageUrl) {
 }
 
 async function main() {
+  printSanityDebugInfo();
+
   console.log(`📥 從 Apps Script 讀取 sheet：${SHEET_NAME}`);
   console.log(`🔗 Apps Script URL：${GOOGLE_SCRIPT_URL}`);
 
@@ -285,10 +365,7 @@ async function main() {
     console.log(`🚀 第 ${i + 1} 篇 / 共 ${postCount} 篇`);
     console.log('====================');
 
-    const post =
-      i === 0
-        ? firstPost
-        : await fetchNextPost();
+    const post = i === 0 ? firstPost : await fetchNextPost();
 
     if (!post || post.error) {
       console.log('✅ 無待處理文章');
@@ -316,20 +393,20 @@ async function main() {
 
     console.log(`🚀 發布：${title}`);
 
-    const result =
-      await createPost(
-        title,
-        html,
-        tags,
-        webpImageUrl
-      );
+    const createResult = await createPost(title, html, tags, webpImageUrl);
+    const sanityResult = createResult.sanityResult;
 
-    if (result.results || result.mutations) {
-      console.log('✅ Sanity 成功，執行回填...');
+    if (sanityResult.results || sanityResult.mutations) {
+      console.log('✅ Sanity 成功');
+
+      console.log(`🔗 準備回寫 I 欄網址：${createResult.officialUrl}`);
+      await saveOfficialUrlToSheet(post.row, createResult.officialUrl);
+      console.log('✅ I 欄網址回寫完成');
+
       await markAsPublishedOnSheet(post.row);
-      console.log('✅ Google Sheet 回填完成');
+      console.log('✅ G 欄 published 回填完成');
     } else {
-      console.warn('⚠️ Sanity 回傳異常:', JSON.stringify(result));
+      console.warn('⚠️ Sanity 回傳異常:', JSON.stringify(sanityResult));
       break;
     }
   }
