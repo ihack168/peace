@@ -47,12 +47,35 @@ const navMenus = [
     ],
   },
   {
+    label: "殯葬用品",
+    href: "/funeral-supplies",
+    items: [
+      { label: "棺木種類與選購", href: "/blog/coffin-selection-guide" },
+      { label: "骨灰罈選購指南", href: "/blog/urn-selection-guide" },
+      { label: "壽衣禮儀服飾", href: "/blog/burial-clothing" },
+      { label: "往生被介紹", href: "/blog/buddhist-burial-shroud" },
+      { label: "罐頭塔與腳尾飯", href: "/blog/funeral-offerings" },
+      { label: "手尾錢習俗", href: "/blog/inheritance-money-custom" },
+      { label: "法會用品準備", href: "/blog/buddhist-ceremony-supplies" },
+    ],
+  },
+  {
+    label: "殯葬服務",
+    href: "/funeral-services",
+    items: [
+      { label: "禮儀公司怎麼選", href: "/blog/how-to-choose-funeral-home" },
+      { label: "治喪委託流程", href: "/blog/funeral-entrustment-process" },
+      { label: "禮儀師服務介紹", href: "/blog/funeral-director-services" },
+      { label: "靈堂佈置服務", href: "/blog/memorial-hall-setup-service" },
+      { label: "助念服務", href: "/blog/chanting-service" },
+      { label: "遺體美容服務", href: "/blog/mortuary-cosmetology-service" },
+      { label: "生前契約服務", href: "/blog/pre-need-contract-service" },
+    ],
+  },
+  {
     label: "生前規劃",
     href: "/pre-planning",
     items: [
-      { label: "生前契約", href: "/blog/pre-need-contract" },
-      { label: "生前契約比較", href: "/blog/pre-need-contract-comparison" },
-      { label: "生前契約注意事項", href: "/blog/pre-need-contract-notes" },
       { label: "預立後事規劃", href: "/blog/funeral-pre-planning" },
       { label: "高齡族規劃", href: "/blog/elderly-funeral-planning" },
     ],
@@ -112,23 +135,18 @@ export function Navbar() {
     }
   }, [pathname])
 
-  const toggleMenu = () => {
-    const nextState = !mobileOpen
-    setMobileOpen(nextState)
+  // 統一管理 body overflow 鎖定與選單關閉，避免手機選單開合邏輯重複
+  const setMobileMenuState = (open: boolean) => {
+    setMobileOpen(open)
+    if (!open) setOpenMobileMenu(null)
 
     if (typeof document !== "undefined") {
-      document.body.style.overflow = nextState ? "hidden" : "unset"
+      document.body.style.overflow = open ? "hidden" : "unset"
     }
   }
 
-  const closeMobileMenu = () => {
-    setMobileOpen(false)
-    setOpenMobileMenu(null)
-
-    if (typeof document !== "undefined") {
-      document.body.style.overflow = "unset"
-    }
-  }
+  const toggleMenu = () => setMobileMenuState(!mobileOpen)
+  const closeMobileMenu = () => setMobileMenuState(false)
 
   return (
     <>
@@ -321,7 +339,7 @@ export function Navbar() {
               </LineConsultButton>
 
               <div className="mt-8 text-sm leading-7 text-muted-foreground">
-                <p>後事流程｜喪葬費用｜塔位納骨塔｜生前規劃</p>
+                <p>後事流程｜喪葬費用｜塔位納骨塔｜殯葬用品｜殯葬服務｜生前規劃</p>
                 <p>提供家屬清楚、低壓力的資訊整理與諮詢協助</p>
               </div>
             </div>
