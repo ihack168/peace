@@ -6,10 +6,39 @@ import { usePathname } from "next/navigation"
 import { ChevronDown } from "lucide-react"
 import { LineConsultButton } from "@/components/line-consult-button"
 
-const navMenus = [
+type NavItem = { label: string; href: string }
+type NavGroup = { title: string; items: NavItem[] }
+type NavMenu = {
+  label: string
+  href: string
+  description: string
+  // A menu has either a flat `items` list, or multi-column `groups`.
+  // Using groups (with headers) instead of one long flat list gives
+  // crawlers / LLMs a clearer "mini sitemap" signal (GEO) while also
+  // avoiding duplicate/competing pages for the same topic (SEO).
+  items?: NavItem[]
+  groups?: NavGroup[]
+}
+
+// 6 主分類（原本 8 個），依主題權威性（topical authority）整併，
+// 避免同主題內容分散在多個分類（keyword cannibalization）。
+// 例如「生前契約」原本同時出現在 費用／服務 兩處，現在集中到「生前規劃」。
+const navMenus: NavMenu[] = [
+  {
+    label: "生前規劃",
+    href: "/pre-planning",
+    description: "及早規劃，減輕家人未來負擔",
+    items: [
+      { label: "預立後事規劃", href: "/blog/funeral-pre-planning" },
+      { label: "高齡族規劃", href: "/blog/elderly-funeral-planning" },
+      { label: "生前契約價格", href: "/blog/pre-need-contract-price" },
+      { label: "生前契約服務", href: "/blog/pre-need-contract-service" },
+    ],
+  },
   {
     label: "後事流程",
     href: "/funeral-process",
+    description: "從親人過世到晉塔，完整步驟說明",
     items: [
       { label: "親人過世怎麼辦", href: "/blog/what-to-do-when-family-passes-away" },
       { label: "往生後24小時流程", href: "/blog/first-24-hours-after-death" },
@@ -21,21 +50,39 @@ const navMenus = [
     ],
   },
   {
-    label: "殯葬費用",
-    href: "/pricing",
-    items: [
-      { label: "喪葬費用怎麼算", href: "/blog/funeral-cost" },
-      { label: "告別式費用", href: "/blog/farewell-ceremony-cost" },
-      { label: "火化費用", href: "/blog/cremation-cost" },
-      { label: "靈堂費用", href: "/blog/memorial-hall-cost" },
-      { label: "禮車費用", href: "/blog/funeral-car-cost" },
-      { label: "塔位價格", href: "/blog/columbarium-price" },
-      { label: "生前契約價格", href: "/blog/pre-need-contract-price" },
+    label: "殯葬服務",
+    href: "/funeral-services",
+    description: "禮儀公司、服務項目與殯葬用品總整理",
+    groups: [
+      {
+        title: "服務項目",
+        items: [
+          { label: "禮儀公司怎麼選", href: "/blog/how-to-choose-funeral-home" },
+          { label: "治喪委託流程", href: "/blog/funeral-entrustment-process" },
+          { label: "禮儀師服務介紹", href: "/blog/funeral-director-services" },
+          { label: "靈堂佈置服務", href: "/blog/memorial-hall-setup-service" },
+          { label: "助念服務", href: "/blog/chanting-service" },
+          { label: "遺體美容服務", href: "/blog/mortuary-cosmetology-service" },
+        ],
+      },
+      {
+        title: "殯葬用品",
+        items: [
+          { label: "棺木種類與選購", href: "/blog/coffin-selection-guide" },
+          { label: "骨灰罈選購指南", href: "/blog/urn-selection-guide" },
+          { label: "壽衣禮儀服飾", href: "/blog/burial-clothing" },
+          { label: "往生被介紹", href: "/blog/buddhist-burial-shroud" },
+          { label: "罐頭塔與腳尾飯", href: "/blog/funeral-offerings" },
+          { label: "手尾錢習俗", href: "/blog/inheritance-money-custom" },
+          { label: "法會用品準備", href: "/blog/buddhist-ceremony-supplies" },
+        ],
+      },
     ],
   },
   {
     label: "塔位納骨塔",
     href: "/memorial",
+    description: "公立、私立塔位選購與晉塔指南",
     items: [
       { label: "納骨塔介紹", href: "/blog/columbarium" },
       { label: "公立納骨塔", href: "/blog/public-columbarium" },
@@ -47,54 +94,38 @@ const navMenus = [
     ],
   },
   {
-    label: "殯葬用品",
-    href: "/funeral-supplies",
-    items: [
-      { label: "棺木種類與選購", href: "/blog/coffin-selection-guide" },
-      { label: "骨灰罈選購指南", href: "/blog/urn-selection-guide" },
-      { label: "壽衣禮儀服飾", href: "/blog/burial-clothing" },
-      { label: "往生被介紹", href: "/blog/buddhist-burial-shroud" },
-      { label: "罐頭塔與腳尾飯", href: "/blog/funeral-offerings" },
-      { label: "手尾錢習俗", href: "/blog/inheritance-money-custom" },
-      { label: "法會用品準備", href: "/blog/buddhist-ceremony-supplies" },
-    ],
-  },
-  {
-    label: "殯葬服務",
-    href: "/funeral-services",
-    items: [
-      { label: "禮儀公司怎麼選", href: "/blog/how-to-choose-funeral-home" },
-      { label: "治喪委託流程", href: "/blog/funeral-entrustment-process" },
-      { label: "禮儀師服務介紹", href: "/blog/funeral-director-services" },
-      { label: "靈堂佈置服務", href: "/blog/memorial-hall-setup-service" },
-      { label: "助念服務", href: "/blog/chanting-service" },
-      { label: "遺體美容服務", href: "/blog/mortuary-cosmetology-service" },
-      { label: "生前契約服務", href: "/blog/pre-need-contract-service" },
-    ],
-  },
-  {
-    label: "生前規劃",
-    href: "/pre-planning",
-    items: [
-      { label: "預立後事規劃", href: "/blog/funeral-pre-planning" },
-      { label: "高齡族規劃", href: "/blog/elderly-funeral-planning" },
-    ],
-  },
-  {
-    label: "喪葬補助",
-    href: "/subsidy",
-    items: [
-      { label: "勞保死亡給付", href: "/blog/labor-insurance-death-benefit" },
-      { label: "國保死亡給付", href: "/blog/national-pension-death-benefit" },
-      { label: "農保喪葬補助", href: "/blog/farmer-insurance-funeral-subsidy" },
-      { label: "軍公教補助", href: "/blog/public-sector-funeral-subsidy" },
-      { label: "各縣市喪葬補助", href: "/blog/city-funeral-subsidy" },
-      { label: "補助申請流程", href: "/blog/funeral-subsidy-application" },
+    label: "費用與補助",
+    href: "/pricing",
+    description: "殯葬費用試算，以及各項政府補助申請",
+    groups: [
+      {
+        title: "殯葬費用",
+        items: [
+          { label: "喪葬費用怎麼算", href: "/blog/funeral-cost" },
+          { label: "告別式費用", href: "/blog/farewell-ceremony-cost" },
+          { label: "火化費用", href: "/blog/cremation-cost" },
+          { label: "靈堂費用", href: "/blog/memorial-hall-cost" },
+          { label: "禮車費用", href: "/blog/funeral-car-cost" },
+          { label: "塔位價格", href: "/blog/columbarium-price" },
+        ],
+      },
+      {
+        title: "喪葬補助",
+        items: [
+          { label: "勞保死亡給付", href: "/blog/labor-insurance-death-benefit" },
+          { label: "國保死亡給付", href: "/blog/national-pension-death-benefit" },
+          { label: "農保喪葬補助", href: "/blog/farmer-insurance-funeral-subsidy" },
+          { label: "軍公教補助", href: "/blog/public-sector-funeral-subsidy" },
+          { label: "各縣市喪葬補助", href: "/blog/city-funeral-subsidy" },
+          { label: "補助申請流程", href: "/blog/funeral-subsidy-application" },
+        ],
+      },
     ],
   },
   {
     label: "法律繼承",
     href: "/inheritance",
+    description: "遺產繼承、遺囑與稅務相關知識",
     items: [
       { label: "遺產繼承", href: "/blog/inheritance" },
       { label: "拋棄繼承", href: "/blog/renunciation-of-inheritance" },
@@ -110,6 +141,13 @@ const simpleLinks = [
   { label: "首頁", href: "/" },
   { label: "最新文章", href: "/blog" },
 ]
+
+// 攤平單一選單的所有連結（不分 items / groups），方便手機版共用渲染邏輯
+function getMenuItems(menu: NavMenu): NavItem[] {
+  if (menu.items) return menu.items
+  if (menu.groups) return menu.groups.flatMap((g) => g.items)
+  return []
+}
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -187,43 +225,74 @@ export function Navbar() {
               首頁
             </Link>
 
-            {navMenus.map((menu) => (
-              <div key={menu.label} className="group relative">
-                <Link
-                  href={menu.href}
-                  className="flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                >
-                  {menu.label}
-                  <ChevronDown
-                    size={14}
-                    className="transition-transform duration-300 group-hover:rotate-180"
-                  />
-                </Link>
+            {navMenus.map((menu) => {
+              const isGrouped = Boolean(menu.groups)
 
-                <div className="invisible absolute left-1/2 top-full z-[80] mt-3 w-[260px] -translate-x-1/2 rounded-3xl border border-border/70 bg-white/95 p-3 opacity-0 shadow-[0_22px_70px_rgba(23,75,115,0.16)] backdrop-blur-xl transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                  <div className="mb-2 border-b border-border/60 px-3 pb-3">
-                    <p className="text-sm font-black text-foreground">
-                      {menu.label}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                      常見搜尋與資訊整理
-                    </p>
-                  </div>
+              return (
+                <div key={menu.label} className="group relative">
+                  <Link
+                    href={menu.href}
+                    className="flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  >
+                    {menu.label}
+                    <ChevronDown
+                      size={14}
+                      className="transition-transform duration-300 group-hover:rotate-180"
+                    />
+                  </Link>
 
-                  <div className="grid gap-1">
-                    {menu.items.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className="rounded-2xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
+                  <div
+                    className={`invisible absolute left-1/2 top-full z-[80] mt-3 -translate-x-1/2 rounded-3xl border border-border/70 bg-white/95 p-3 opacity-0 shadow-[0_22px_70px_rgba(23,75,115,0.16)] backdrop-blur-xl transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 ${
+                      isGrouped ? "w-[480px]" : "w-[260px]"
+                    }`}
+                  >
+                    <div className="mb-2 border-b border-border/60 px-3 pb-3">
+                      <p className="text-sm font-black text-foreground">
+                        {menu.label}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        {menu.description}
+                      </p>
+                    </div>
+
+                    {isGrouped ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {menu.groups!.map((group) => (
+                          <div key={group.title}>
+                            <p className="px-3 pb-1 pt-1 text-xs font-bold text-primary/70">
+                              {group.title}
+                            </p>
+                            <div className="grid gap-1">
+                              {group.items.map((item) => (
+                                <Link
+                                  key={item.href}
+                                  href={item.href}
+                                  className="rounded-2xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
+                                >
+                                  {item.label}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid gap-1">
+                        {menu.items!.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className="rounded-2xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
 
             <Link
               href="/blog"
@@ -290,6 +359,7 @@ export function Navbar() {
 
               {navMenus.map((menu) => {
                 const isOpen = openMobileMenu === menu.label
+                const flatItems = getMenuItems(menu)
 
                 return (
                   <div key={menu.label} className="border-b border-border">
@@ -309,25 +379,49 @@ export function Navbar() {
                     </button>
 
                     {isOpen && (
-                      <div className="grid gap-1 pb-4">
+                      <div className="pb-4">
                         <Link
                           href={menu.href}
                           onClick={closeMobileMenu}
-                          className="rounded-2xl bg-secondary px-4 py-3 text-sm font-bold text-primary"
+                          className="mb-1 block rounded-2xl bg-secondary px-4 py-3 text-sm font-bold text-primary"
                         >
                           查看{menu.label}總覽
                         </Link>
 
-                        {menu.items.map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={closeMobileMenu}
-                            className="rounded-2xl px-4 py-3 text-base font-medium text-muted-foreground transition-colors active:bg-secondary active:text-primary"
-                          >
-                            {item.label}
-                          </Link>
-                        ))}
+                        {menu.groups ? (
+                          menu.groups.map((group) => (
+                            <div key={group.title} className="mt-2">
+                              <p className="px-4 pb-1 pt-2 text-xs font-bold text-primary/70">
+                                {group.title}
+                              </p>
+                              <div className="grid gap-1">
+                                {group.items.map((item) => (
+                                  <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    onClick={closeMobileMenu}
+                                    className="rounded-2xl px-4 py-3 text-base font-medium text-muted-foreground transition-colors active:bg-secondary active:text-primary"
+                                  >
+                                    {item.label}
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="grid gap-1">
+                            {flatItems.map((item) => (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                onClick={closeMobileMenu}
+                                className="rounded-2xl px-4 py-3 text-base font-medium text-muted-foreground transition-colors active:bg-secondary active:text-primary"
+                              >
+                                {item.label}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -339,7 +433,7 @@ export function Navbar() {
               </LineConsultButton>
 
               <div className="mt-8 text-sm leading-7 text-muted-foreground">
-                <p>後事流程｜喪葬費用｜塔位納骨塔｜殯葬用品｜殯葬服務｜生前規劃</p>
+                <p>生前規劃｜後事流程｜殯葬服務｜塔位納骨塔｜費用與補助｜法律繼承</p>
                 <p>提供家屬清楚、低壓力的資訊整理與諮詢協助</p>
               </div>
             </div>
