@@ -31,8 +31,6 @@ const navMenus: NavMenu[] = [
     items: [
       { label: "預立後事規劃", href: "/blog/funeral-pre-planning" },
       { label: "高齡族規劃", href: "/blog/elderly-funeral-planning" },
-      { label: "生前契約價格", href: "/blog/pre-need-contract-price" },
-      { label: "生前契約服務", href: "/blog/pre-need-contract-service" },
     ],
   },
   {
