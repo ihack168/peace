@@ -362,7 +362,7 @@ function BlogPageContent() {
             </>
           )}
         </div>
-                        <ShareBar />
+      <ShareBar />
       </main>
 
       <Footer />

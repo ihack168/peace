@@ -250,6 +250,7 @@ export default async function PostPage({
             <LineConsultButton>預約諮詢 →</LineConsultButton>
           </div>
         </div>
+              <center><ShareBar /></center>
       </main>
 
       <Footer />
