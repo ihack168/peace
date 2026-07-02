@@ -3,6 +3,7 @@ import { createImageUrlBuilder } from "@sanity/image-url"
 import { PortableText } from "@portabletext/react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { ShareBar } from "@/components/share-bar";
 import { LineConsultButton } from "@/components/line-consult-button"
 import { notFound } from "next/navigation"
 import Link from "next/link"
