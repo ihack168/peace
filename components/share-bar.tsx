@@ -12,7 +12,7 @@ type ShareBarProps = {
 
 export function ShareBar({
   variant = "light",
-  contactHref = "/contact",
+  contactHref = "/line",
 }: ShareBarProps) {
   const [url, setUrl] = useState("");
   const [copied, setCopied] = useState(false);
