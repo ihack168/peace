@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { client } from "@/lib/sanity"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { ShareBar } from "@/components/share-bar";
 import Link from "next/link"
 
 interface Post {
