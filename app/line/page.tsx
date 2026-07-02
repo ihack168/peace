@@ -48,13 +48,6 @@ export default function LinePage() {
             後事流程免費諮詢
           </h1>
 
-          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-            家人剛往生不知道該怎麼辦？
-            <br />
-            加入 LINE，由專人協助您了解後事流程、
-            治喪安排、殯葬服務與相關費用。
-          </p>
-
           {/* 真人感提示 */}
           <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-4 py-2 text-sm text-primary">
             🙏 專人即時回覆・可先免費諮詢
@@ -68,7 +61,7 @@ export default function LinePage() {
                 items-center
                 justify-center
                 rounded-full
-                bg-primary
+                bg-[#06C755]
                 px-10
                 py-5
                 text-base
@@ -98,11 +91,6 @@ export default function LinePage() {
               塔位資訊
             </div>
           </div>
-
-          <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
-            提供往生後第一步、治喪流程、告別式安排、
-            火化流程、靈骨塔與塔位資訊、生前契約及相關費用諮詢。
-          </p>
         </div>
       </div>
     </main>
