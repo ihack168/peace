@@ -40,6 +40,10 @@ function optimizeSanityImages(html?: string) {
 
 /**
  * 🚨 清理「跨產業污染內容」
+ *
+ * 注意：只在「> 文字 <」之間的純文字節點內做替換，絕不觸碰標籤本身，
+ * 避免把標籤名稱一起吃掉（舊版寫法會把 <p> 吃成 <，導致 <</p> 這種壞標籤）。
+ * 命中關鍵字時也只刪掉該句（以中文標點斷句），而不是整段文字清空。
  */
 function sanitizeContent(html: string) {
   const bannedKeywords = [
@@ -54,14 +58,23 @@ function sanitizeContent(html: string) {
     "產品推薦",
   ]
 
-  let cleaned = html
+  const keywordPattern = new RegExp(bannedKeywords.join("|"))
 
-  for (const keyword of bannedKeywords) {
-    const regex = new RegExp(`[^<]*${keyword}[^<]*`, "g")
-    cleaned = cleaned.replace(regex, "")
-  }
+  return html.replace(/>([^<]*)</g, (fullMatch, text) => {
+    if (!keywordPattern.test(text)) return fullMatch
 
-  return cleaned
+    let cleaned = text
+    for (const keyword of bannedKeywords) {
+      // 只刪除包含關鍵字的那一句（以句號、驚嘆號、問號、換行斷句），保留同一文字節點的其他句子
+      const sentenceRegex = new RegExp(
+        `[^。！？\\n]*${keyword}[^。！？\\n]*[。！？]?`,
+        "g"
+      )
+      cleaned = cleaned.replace(sentenceRegex, "")
+    }
+
+    return `>${cleaned}<`
+  })
 }
 
 const ptComponents = {
@@ -233,9 +246,10 @@ export default async function PostPage({
             </div>
           )}
 
-          <article className="prose max-w-none">
+          <article className="prose max-w-none prose-lg md:prose-xl prose-p:mb-5 prose-p:leading-[1.9] prose-p:text-muted-foreground prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-foreground prose-h2:mt-12 prose-h2:mb-6 prose-h2:border-l-4 prose-h2:border-primary prose-h2:pl-5 prose-h2:text-3xl prose-h3:mt-8 prose-h3:text-2xl prose-strong:font-bold prose-strong:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:opacity-70 prose-ul:rounded-[1.5rem] prose-ul:border prose-ul:border-border prose-ul:bg-white/70 prose-ul:p-8 prose-ul:shadow-sm prose-li:text-muted-foreground prose-li:marker:text-primary prose-table:my-10 prose-table:block prose-table:overflow-x-auto prose-table:border-collapse prose-thead:bg-primary/10 prose-th:border prose-th:border-border prose-th:p-4 prose-th:text-primary prose-td:border prose-td:border-border prose-td:p-4 prose-td:text-muted-foreground prose-img:rounded-[2rem] prose-img:border prose-img:border-border prose-blockquote:rounded-r-2xl prose-blockquote:border-l-primary prose-blockquote:bg-white/70 prose-blockquote:px-6 prose-blockquote:py-3 prose-blockquote:text-muted-foreground">
             {post.htmlContent ? (
               <div
+                className="[&_table]:!my-10 [&_table]:!w-full [&_table]:!border-collapse [&_table]:!overflow-hidden [&_table]:!rounded-2xl [&_th]:!border [&_th]:!border-border [&_th]:!bg-primary/10 [&_th]:!p-4 [&_th]:!text-primary [&_td]:!border [&_td]:!border-border [&_td]:!p-4 [&_td]:!text-muted-foreground [&_tr]:!bg-transparent [&_img]:mx-auto [&_img]:my-8 [&_img]:block [&_img]:rounded-[2rem] [&_img]:border [&_img]:border-border [&_img]:shadow-[0_16px_50px_rgba(120,80,70,0.12)] [&_p]:mb-5 [&_p]:leading-[1.9] [&_p]:text-muted-foreground [&_h2]:mt-12 [&_h2]:mb-6 [&_h2]:border-l-4 [&_h2]:border-primary [&_h2]:pl-5 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:text-foreground [&_h3]:mt-8 [&_h3]:text-2xl [&_h3]:font-bold [&_h3]:text-foreground [&_li]:mb-1 [&_li]:text-muted-foreground [&_strong]:text-foreground"
                 dangerouslySetInnerHTML={{ __html: optimizedHtml }}
               />
             ) : (
@@ -251,7 +265,8 @@ export default async function PostPage({
             <LineConsultButton>預約諮詢 →</LineConsultButton>
           </div>
         </div>
-              <center><ShareBar /></center>
+
+        <ShareBar />
       </main>
 
       <Footer />
