@@ -426,7 +426,7 @@ export function Navbar() {
                 )
               })}
 
-              <LineConsultButton className="mt-6 flex h-14 items-center justify-center rounded-full bg-primary text-base font-semibold text-primary-foreground shadow-[0_14px_36px_rgba(23,75,115,0.28)]">
+              <LineConsultButton className="mt-6 flex h-14 items-center justify-center rounded-full bg-[#06C755] text-base font-semibold text-primary-foreground shadow-[0_14px_36px_rgba(23,75,115,0.28)]">
                 LINE 詢問後事流程
               </LineConsultButton>
 

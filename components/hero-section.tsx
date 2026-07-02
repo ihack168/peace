@@ -33,7 +33,7 @@ export function HeroSection() {
             <LineConsultButton
               className="
                 rounded-full
-                bg-primary
+                bg-[#06C755]
                 px-7 py-3.5
                 text-sm font-semibold
                 text-primary-foreground
