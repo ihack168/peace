@@ -301,9 +301,9 @@ export function Navbar() {
           </div>
 
           <div className="hidden items-center gap-3 xl:flex">
-            <LineConsultButton className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-[0_10px_30px_rgba(23,75,115,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(23,75,115,0.35)]">
-              LINE 詢問流程
-            </LineConsultButton>
+<LineConsultButton className="rounded-full bg-[#06C755] px-6 py-3 text-sm md:text-base font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,0.15)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(0,0,0,0.25)]">
+  LINE 免費諮詢
+</LineConsultButton>
           </div>
 
           <button
