@@ -102,12 +102,12 @@ export function ShareBar({
         />
 
         {/* CONTACT */}
-        <button
-          onClick={handleContact}
-          className="whitespace-nowrap rounded-full bg-[#06C755] px-2 py-2 text-[11px] font-black text-black transition hover:scale-105 md:px-4 md:text-xs"
-        >
-          聯絡我 →
-        </button>
+<button
+  onClick={handleContact}
+  className="whitespace-nowrap rounded-full bg-[#06C755] px-2 py-2 text-[11px] font-black text-white transition hover:scale-105 hover:bg-[#00E676] md:px-4 md:text-xs"
+>
+  聯絡我 →
+</button>
       </div>
     </div>
   );
