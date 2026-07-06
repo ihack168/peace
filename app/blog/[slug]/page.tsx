@@ -2,7 +2,7 @@ import { client } from "@/lib/sanity"
 import { createImageUrlBuilder } from "@sanity/image-url"
 import { PortableText } from "@portabletext/react"
 import { Footer } from "@/components/footer"
-import { ShareBar } from "@/components/share-bar";
+import { ShareBar } from "@/components/share-bar"
 import { LineConsultButton } from "@/components/line-consult-button"
 import { notFound } from "next/navigation"
 import Link from "next/link"
@@ -63,12 +63,14 @@ function sanitizeContent(html: string) {
     if (!keywordPattern.test(text)) return fullMatch
 
     let cleaned = text
+
     for (const keyword of bannedKeywords) {
       // 只刪除包含關鍵字的那一句（以句號、驚嘆號、問號、換行斷句），保留同一文字節點的其他句子
       const sentenceRegex = new RegExp(
         `[^。！？\\n]*${keyword}[^。！？\\n]*[。！？]?`,
         "g"
       )
+
       cleaned = cleaned.replace(sentenceRegex, "")
     }
 
@@ -89,6 +91,7 @@ const ptComponents = {
             className="w-full rounded-[2rem] border border-border shadow-[0_16px_50px_rgba(120,80,70,0.12)]"
             loading="lazy"
           />
+
           {value.caption && (
             <figcaption className="mt-3 text-center text-sm text-muted-foreground">
               {value.caption}
@@ -113,33 +116,43 @@ export async function generateMetadata({
       description,
       mainImage
     }`,
-    { slug }
+    { slug },
+    { cache: "no-store" }
   )
 
   if (!post) return {}
 
-return {
-  title: `${post.title} | ${siteName}`,
-  description: post.description || post.title,
-  alternates: {
-    canonical: `/blog/${slug}`,
-  },
-  openGraph: {
-    title: post.title,
+  const ogImage = post.mainImage
+    ? urlFor(post.mainImage)
+        .width(1200)
+        .height(630)
+        .fit("crop")
+        .auto("format")
+        .url()
+    : undefined
+
+  return {
+    title: `${post.title} | ${siteName}`,
     description: post.description || post.title,
-    url: `${siteUrl}/blog/${slug}`,
-    siteName,
-    images: ogImage ? [{ url: ogImage }] : [],
-    locale: "zh_TW",
-    type: "article",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: post.title,
-    description: post.description || post.title,
-    images: ogImage ? [ogImage] : [],
-  },
-}
+    alternates: {
+      canonical: `/blog/${slug}`,
+    },
+    openGraph: {
+      title: post.title,
+      description: post.description || post.title,
+      url: `${siteUrl}/blog/${slug}`,
+      siteName,
+      images: ogImage ? [{ url: ogImage }] : [],
+      locale: "zh_TW",
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.description || post.title,
+      images: ogImage ? [ogImage] : [],
+    },
+  }
 }
 
 export default async function PostPage({
@@ -209,7 +222,6 @@ export default async function PostPage({
 
       <main className="relative overflow-hidden px-6 pb-24 pt-32">
         <div className="mx-auto max-w-4xl">
-
           <nav className="mb-10 flex items-center gap-2 text-sm text-muted-foreground">
             <Link href="/">首頁</Link>
             <span>/</span>
@@ -280,7 +292,9 @@ export default async function PostPage({
 
 export async function generateStaticParams() {
   const posts = await client.fetch(
-    `*[_type == "post"]{ "slug": slug.current }`
+    `*[_type == "post"]{ "slug": slug.current }`,
+    {},
+    { cache: "no-store" }
   )
 
   return posts?.map((p: any) => ({ slug: p.slug })) || []
