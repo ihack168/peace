@@ -11,7 +11,7 @@ const contacts = [
     label: "LINE 詢問後事流程",
     description:
       "可先詢問臨終準備、往生後流程、告別式安排、塔位資訊與費用觀念，協助家屬先釐清方向。",
-    href: "https://line.me/R/ti/p/@你的LINEID",
+    href: "https://line.me/R/ti/p/~223367805",
     icon: <MessageCircle size={28} />,
   },
   {
@@ -116,7 +116,7 @@ export function ContactSection() {
 
         <div className="mt-14 text-center">
           <a
-            href="https://line.me/R/ti/p/@你的LINEID"
+            href="https://line.me/R/ti/p/~223367805"
             target="_blank"
             rel="noopener noreferrer"
             className="
