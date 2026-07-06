@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { client } from "@/lib/sanity"
-import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ShareBar } from "@/components/share-bar"
 import Link from "next/link"
@@ -215,7 +214,6 @@ function BlogPageContent() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Navbar />
 
       <main className="relative overflow-hidden px-6 pb-24 pt-32">
         <div className="absolute left-1/2 top-20 -z-10 h-[360px] w-[360px] -translate-x-1/2 rounded-full bg-primary/10 blur-[110px]" />

@@ -1,7 +1,6 @@
 import { client } from "@/lib/sanity"
 import { createImageUrlBuilder } from "@sanity/image-url"
 import { PortableText } from "@portabletext/react"
-import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ShareBar } from "@/components/share-bar";
 import { LineConsultButton } from "@/components/line-consult-button"
@@ -119,21 +118,28 @@ export async function generateMetadata({
 
   if (!post) return {}
 
-  return {
-    title: `${post.title} | ${siteName}`,
+return {
+  title: `${post.title} | ${siteName}`,
+  description: post.description || post.title,
+  alternates: {
+    canonical: `/blog/${slug}`,
+  },
+  openGraph: {
+    title: post.title,
     description: post.description || post.title,
-    openGraph: {
-      title: post.title,
-      description: post.description || post.title,
-      url: `${siteUrl}/blog/${slug}`,
-      siteName,
-      images: post.mainImage
-        ? [{ url: urlFor(post.mainImage).width(1200).height(630).fit("crop").auto("format").url() }]
-        : [],
-      locale: "zh_TW",
-      type: "article",
-    },
-  }
+    url: `${siteUrl}/blog/${slug}`,
+    siteName,
+    images: ogImage ? [{ url: ogImage }] : [],
+    locale: "zh_TW",
+    type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: post.title,
+    description: post.description || post.title,
+    images: ogImage ? [ogImage] : [],
+  },
+}
 }
 
 export default async function PostPage({
@@ -200,8 +206,6 @@ export default async function PostPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-
-      <Navbar />
 
       <main className="relative overflow-hidden px-6 pb-24 pt-32">
         <div className="mx-auto max-w-4xl">
