@@ -1,4 +1,3 @@
-```tsx
 import type { Metadata } from "next";
 
 import { Navbar } from "@/components/navbar";
@@ -352,4 +351,3 @@ export default function Home() {
     </div>
   );
 }
-```
