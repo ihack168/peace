@@ -1,31 +1,34 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState } from "react"
+import Link from "next/link"
 
 export interface LatestPost {
-  id: string;
-  title: string;
-  slug: string;
-  description: string;
-  thumbnail: string;
-  videoId?: string;
-  tags: string[];
-  publishedAt: string;
+  id: string
+  title: string
+  slug: string
+  description: string
+  thumbnail: string
+  videoId?: string
+  tags: string[]
+  publishedAt: string
 }
 
 interface LatestPostCardProps {
-  post: LatestPost;
+  post: LatestPost
 }
 
+// 唯一需要留在 client 端的互動：點縮圖上的播放鍵直接內嵌播放 YouTube。
+// 每張卡片自己管理 isVideoPlaying，不需要把狀態提升到列表層共用，
+// 這樣列表本身（LatestPostsSection）才能維持是 Server Component。
 export function LatestPostCard({ post }: LatestPostCardProps) {
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false)
 
-  const articleUrl = `/blog/${post.slug}`;
+  const articleUrl = `/blog/${post.slug}`
 
   return (
-    <article className="group overflow-hidden rounded-3xl border border-white/10 bg-white/[0.055] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[#ff8800]/60 hover:shadow-[0_0_34px_rgba(255,136,0,0.18)]">
-      <div className="relative h-[160px] w-full overflow-hidden bg-black md:h-[175px]">
+    <article className="group overflow-hidden rounded-[2rem] border border-border/70 bg-white/80 shadow-[0_10px_40px_rgba(120,80,70,0.08)] backdrop-blur transition-all duration-500 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-[0_20px_60px_rgba(217,143,143,0.14)]">
+      <div className="relative aspect-video w-full overflow-hidden bg-muted">
         {isVideoPlaying && post.videoId ? (
           <iframe
             src={`https://www.youtube.com/embed/${post.videoId}?autoplay=1`}
@@ -45,74 +48,69 @@ export function LatestPostCard({ post }: LatestPostCardProps) {
                 <img
                   src={post.thumbnail}
                   alt={post.title}
-                  width={600}
-                  height={350}
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-all duration-700 group-hover:scale-105"
                   loading="lazy"
                   decoding="async"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-white/5 text-sm text-white/40">
+                <div className="flex h-full w-full items-center justify-center bg-secondary text-sm text-muted-foreground">
                   暫無圖片
                 </div>
               )}
             </Link>
 
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-white/5" />
-
             {post.videoId && (
-              <button
-                type="button"
-                onClick={() => setIsVideoPlaying(true)}
-                className="absolute inset-0 m-auto flex h-11 w-14 items-center justify-center rounded-2xl bg-white/90 shadow-xl backdrop-blur transition duration-300 hover:scale-110"
-                aria-label={`播放影片：${post.title}`}
-              >
-                <span className="ml-1 border-y-[9px] border-l-[15px] border-y-transparent border-l-[#ff8800]" />
-              </button>
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => setIsVideoPlaying(true)}
+                  className="pointer-events-auto flex h-12 w-16 cursor-pointer items-center justify-center rounded-2xl bg-white/90 shadow-xl backdrop-blur transition-transform duration-300 hover:scale-110"
+                  aria-label={`播放影片：${post.title}`}
+                >
+                  <span className="ml-1 border-y-[10px] border-l-[16px] border-y-transparent border-l-primary" />
+                </button>
+              </div>
             )}
           </div>
         )}
       </div>
 
-      <div className="flex min-h-[210px] flex-col p-5">
-        {post.tags.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {post.tags.slice(0, 2).map((tag) => (
-              <Link
-                key={tag}
-                href={`/blog?tag=${encodeURIComponent(tag)}`}
-                className="rounded-full border border-[#ff8800]/25 bg-[#ff8800]/10 px-2.5 py-1 text-xs font-bold text-[#ff8800] transition hover:bg-[#ff8800] hover:text-black"
-              >
-                #{tag}
-              </Link>
-            ))}
-          </div>
-        )}
+      <div className="flex min-h-[260px] flex-col p-6">
+        <div className="mb-4 flex flex-wrap gap-2">
+          {post.tags?.map((tag) => (
+            <Link
+              key={tag}
+              href={`/blog?tag=${encodeURIComponent(tag)}`}
+              className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary transition-all hover:bg-primary hover:text-primary-foreground"
+            >
+              #{tag}
+            </Link>
+          ))}
+        </div>
 
         <Link href={articleUrl}>
-          <h3 className="line-clamp-2 text-lg font-black leading-snug text-white transition group-hover:text-[#ff8800]">
+          <h3 className="line-clamp-2 text-xl font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
             {post.title}
           </h3>
         </Link>
 
-        <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-400">
+        <p className="mt-4 line-clamp-3 text-sm leading-7 text-muted-foreground">
           {post.description}
         </p>
 
-        <div className="mt-auto pt-4">
+        <div className="mt-auto pt-6">
           <Link
             href={articleUrl}
-            className="inline-flex items-center text-sm font-bold text-[#ff8800]"
+            className="inline-flex items-center text-sm font-semibold text-primary"
             aria-label={`閱讀完整文章：${post.title}`}
           >
             閱讀文章
-
-            <span className="ml-2 transition group-hover:translate-x-1">
+            <span className="ml-2 transition-transform group-hover:translate-x-1">
               →
             </span>
           </Link>
         </div>
       </div>
     </article>
-  );
+  )
 }
