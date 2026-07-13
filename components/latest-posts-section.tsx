@@ -118,7 +118,7 @@ export function LatestPostsSection() {
           </h2>
 
           <p className="mt-4 max-w-2xl text-base leading-8 text-muted-foreground">
-            整理社會住宅包租代管、房東出租、租屋補助與租務管理相關資訊。
+            整理後事流程、生命禮儀、殯葬服務與塔位費用相關資訊。
           </p>
         </div>
 
@@ -232,7 +232,7 @@ export function LatestPostsSection() {
           </p>
 
           <p className="mt-3 text-sm text-muted-foreground">
-            之後會陸續分享社會住宅、包租代管與租屋補助相關內容。
+            之後會陸續分享後事流程、生命禮儀與殯葬服務相關內容。
           </p>
         </div>
       )}
