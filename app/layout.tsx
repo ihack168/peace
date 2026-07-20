@@ -135,8 +135,8 @@ export default function RootLayout({
           strategy="afterInteractive"
         />
 <Script
-  src="https://cloud.umami.is/script.js"
-  data-website-id="d22b84c3-1e8f-41f2-bea5-3c9a8c099325"
+  src="https://ana.line88.tw/script.js"
+  data-website-id="24cc7078-6d8f-46cd-abf4-6f037b35da1a"
   strategy="afterInteractive"
 />
         <Navbar />
